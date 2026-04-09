@@ -1,84 +1,146 @@
-from browser_cookie3 import chrome
-from utils.api       import Api
-from random          import choice
-from threading       import Thread, active_count
+from requests import request
+from pystyle import Colorate, Colors, Center
+from os import system
+from threading import Thread
+from json import loads
+from re import findall
 
-class TikReport:
-    def __init__(this, cookies: dict):
-        this.cookies   = cookies
-        this.userInfo  = None
-        this.selfInfo  = None
-        this.reasons   = ['9101', '91011', '9009', '90093', '90097', '90095', '90064', '90061', '90063', '9006', '9008', '90081', '90082', '9007', '1001', '1002', '1003', '1004', '9002', '90011', '90010', '9001', '9010', '9011', '90112', '90113', '9003', '90031', '90032', '90033', '90034', '90035', '90036', '9004', '9005', '9012', '910121', '910122', '91012', '91013', '910131', '910132', '910133', '910134', '910135', '91014', '9013', '9102']
+report_video = 0
+report_user = 0
 
-    def reportAccount(this):
 
-        for reason in this.reasons:
-            params = {
-                'secUid'         : this.userInfo['userInfo']['user']['secUid'],
-                'nickname'       : this.userInfo['userInfo']['user']['nickname'],
-                'object_id'      : this.userInfo['userInfo']['user']['id'],
-                'owner_id'       : this.userInfo['userInfo']['user']['id'],
-                'target'         : this.userInfo['userInfo']['user']['id'],
-                'reporter_id'    : this.selfInfo['data']['user_id'],
-                'reason'         : reason,
-                'report_type'    : 'user',
+def user_info(username: str) -> dict:
+    html_data = request(
+        "GET", f"https://livecounts.io/tiktok-live-follower-counter/{username}"
+    ).text
+    parsed_info = loads(findall(r'n">(.*)<\/s', html_data)[0])
+
+    return parsed_info["props"]["pageProps"]["data"]
+
+
+def status(report_video, report_user):
+    print(
+        Colorate.Horizontal(
+            Colors.blue_to_cyan,
+            "[i] User Report(s): {} | Video Report(s): {}".format(
+                report_user, report_video
+            ),
+        ),
+        end="\r",
+    )
+
+
+def report(id, aweme_id, sessionid):
+    global report_video
+
+    url = "https://api31-normal-useast1a.tiktokv.com/aweme/v1/aweme/feedback/?request_tag_from=h5&reason=111&owner_id={}&report_type=video&object_id={}&report_desc=%EF%BF%BDUser%20violates%20community%20guidelines%20on%20multiple%20occasions%20by%20spreading%20illegal%20activities%2Fscams%20and%20by%20insulting%2Fharassing%20people%20please%20remove%20this%20content!%20(Offending%20content%20in%20video%20and%20caption)%EF%BF%BD&aid=1180".format(
+        id, aweme_id
+    )
+
+    headers = {
+        "accept-encoding": "gzip",
+        "sdk-version": "2",
+        "cookie": "sessionid={}".format(sessionid),
+        "user-agent": "com.ss.android.ugc.trill/240303 (Linux; U; Android 12; en_US; Pixel 6 Pro; Build/SP2A.220405.004;tt-ok/3.10.0.2)",
+    }
+
+    while True:
+        try:
+            request("GET", url, headers=headers)
+
+            report_video += 1
+
+            status(report_video, report_user)
+        except Exception:
+            continue
+        break
+
+
+def banner():
+    system("cls")
+    print(
+        Colorate.Horizontal(
+            Colors.blue_to_cyan,
+            Center.XCenter(
+                """
+                    ████████╗██╗██╗  ██╗██████╗ ███████╗██████╗  ██████╗ ██████╗ ████████╗
+                    ╚══██╔══╝██║██║ ██╔╝██╔══██╗██╔════╝██╔══██╗██╔═══██╗██╔══██╗╚══██╔══╝
+                       ██║   ██║█████╔╝ ██████╔╝█████╗  ██████╔╝██║   ██║██████╔╝   ██║   
+                       ██║   ██║██╔═██╗ ██╔══██╗██╔══╝  ██╔═══╝ ██║   ██║██╔══██╗   ██║   
+                       ██║   ██║██║  ██╗██║  ██║███████╗██║     ╚██████╔╝██║  ██║   ██║   
+                       ╚═╝   ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝                                                 
+                """
+            ),
+        )
+    )
+
+
+if __name__ == "__main__":
+    banner()
+
+    sessionid = input(Colorate.Horizontal(Colors.blue_to_cyan, "[?] Session ID >>> "))
+
+    banner()
+
+    username = input(Colorate.Horizontal(Colors.blue_to_cyan, "[?] Username >>> "))
+    id = user_info(username)["userId"]
+
+    banner()
+
+    print(Colorate.Horizontal(Colors.blue_to_cyan, "[i] Please wait..."), end="\r")
+
+    url = "https://api31-normal-useast1a.tiktokv.com/aweme/v1/aweme/feedback/?request_tag_from=h5&reason=311&owner_id={}&report_type=user&object_id={}&report_desc=%EF%BF%BDUser%20violates%20community%20guidelines%20on%20multiple%20occasions%20by%20spreading%20illegal%20activities%2Fscams%20and%20by%20insulting%2Fharassing%20people%20please%20remove%20this%20content!%20(Offending%20content%20in%20video%20and%20caption)%EF%BF%BD&aid=1180".format(
+        id, id
+    )
+
+    headers = {
+        "accept-encoding": "gzip",
+        "sdk-version": "2",
+        "cookie": "sessionid={}".format(sessionid),
+        "user-agent": "com.ss.android.ugc.trill/240303 (Linux; U; Android 12; en_US; Pixel 6 Pro; Build/SP2A.220405.004;tt-ok/3.10.0.2)",
+    }
+
+    request("GET", url, headers=headers)
+
+    report_user += 1
+
+    status(report_video, report_user)
+    while True:
+        max_cursor = 0
+
+        while True:
+            url = "https://api2-19-h2.musical.ly/aweme/v1/aweme/post/?max_cursor={}&user_id={}&count=200&retry_type=no_retry&mcc_mnc=&app_language=en&language=en&region=US&sys_region=US&carrier_region=&carrier_region_v2=&build_number=10.1.7&timezone_offset=3600&timezone_name=Europe%2FBerlin&is_my_cn=0&fp=&pass-region=1&pass-route=1&iid=7127307272354596614&device_id=7083579838678386182&ac=wifi&channel=googleplay&aid=1233&app_name=musical_ly&version_code=100107&version_name=10.1.7&device_platform=android&ab_version=10.1.7&ssmix=a&device_type=Pixel%2B6%2BPro&device_brand=google&os_api=30&os_version=12&openudid=fe44d963d8b2c849&manifest_version_code=2019021215&resolution=1080*2268&dpi=443&update_version_code=2019021215&_rticket=1659461968895&ts=1659461970&as=a1iosdfgh&cp=androide1".format(
+                max_cursor, id
+            )
+
+            headers = {
+                "Host": "api2-19-h2.musical.ly",
+                "Connection": "keep-alive",
+                "Accept-Encoding": "gzip",
+                "cookie": "sessionid={}".format(sessionid),
+                "sdk-version": "1",
+                "User-Agent": "com.zhiliaoapp.musically/2019021215 (Linux; U; Android 12; en_US; Pixel 6 Pro; Build/SP2A.220405.004; Cronet/58.0.2991.0)",
             }
 
-            req =  Api(cookies = this.cookies).tiktok_request('aweme/v2/aweme/feedback/', extra_params = params)
-            print(f'reported: user - {reason} - {req.json()["extra"]}')
-            
-    def reportVideo(this, videoId: str):
-        params = {
-            'nickname'          : this.userInfo['userInfo']['user']['nickname'],
-            'object_id'         : videoId,
-            'object_owner_id'   : this.userInfo['userInfo']['user']['id'],
-            'owner_id'          : this.userInfo['userInfo']['user']['id'],
-            'reason'            : choice(this.reasons),
-            'report_type'       : 'video',
-            'reporter_id'       : this.selfInfo['data']['user_id'],
-            'target'            : videoId,
-            'video_id'          : videoId,
-            'video_owner'       : '[object Object]', # lol
-        }
-        
-        return
+            response = request("GET", url, headers=headers).json()
 
-    def start(this, username: str):
-        this.userInfo = Api(cookies = this.cookies).user_info(username).json()
-        this.selfInfo = Api(cookies = this.cookies).account_info().json()
+            try:
+                if response["status_msg"] == "No more videos":
+                    break
+            except Exception:
+                try:
+                    max_cursor = response["max_cursor"]
+                except Exception:
+                    break
 
-        this.reportAccount()
+            aweme_list = response["aweme_list"]
 
-if __name__ == '__main__':
-    threads    = 10
-    cookies    = {c.name: c.value for c in chrome(domain_name='tiktok.com')}
-    username   = input('username: ')
-    
-    if not cookies.get('sessionid'):
-        cookies['sessionid'] = input('sessionid: ')
-
-    TikReport(cookies).start(username)
-
-    secUid = Api(cookies = cookies).user_info(username).json()['userInfo']['user']['secUid']
-    
-    video_list = []
-    cursor     = 0
-    
-    while True:
-        videos = Api(cookies = cookies).user_videos(secUid, 33, cursor).json()
-        
-        for video in videos['itemList']:
-            if video not in video_list:
-                video_list.append(video['id'])
-
-        print(f'scraped: {len(video_list)} videos')
-        
-        cursor = videos['cursor']
-        if not videos['hasMore']:
-            break
-    
-    index = 0
-    while index < len(video_list):
-        if active_count() < threads:
-            Thread(target = TikReport(cookies).reportVideo, args = (video_list[index],)).start()
-            index += 1
+            for aweme in aweme_list:
+                Thread(
+                    target=report,
+                    args=(
+                        id,
+                        aweme["aweme_id"],
+                        sessionid,
+                    ),
+                ).start()
